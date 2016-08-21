@@ -1,6 +1,5 @@
 console.log("This is a 3D visualizator");
 var camera, scene, renderer, objects, controls;
-var ws = new WebSocket("ws://"+window.location.host + "/websocket")
 var t	= 0
 var clock = new THREE.Clock();
 logFileElem = document.getElementById("csvFileInput");
