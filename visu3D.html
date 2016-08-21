@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>3D visualisation</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <style>
+            body {
+                font-family: Monospace;
+                background-color: #87ceeb;
+                margin: 0px;
+                overflow: hidden;
+            }
+
+            #info {
+                color: #fff;
+                position: absolute;
+                top: 10px;
+                width: 100%;
+                text-align: center;
+                z-index: 100;
+                display:block;
+
+            }
+
+            a { color: skyblue }
+        </style>
+    </head>
+    <body>
+          <input type="file" id="csvFileInput" style="display:none" onchange="loadLogFiles(this.files)"
+          accept=".csv">
+		  <input type="file" id="daeFileInput" style="display:none" onchange="loadDAEFiles(this.files)"
+          accept=".dae">
+	<div id="output">
+    </div>
+        <script src="static/libs/three.js"></script>
+
+        <script src="static/loaders/ColladaLoader.js"></script>
+
+        <script type = "text/javascript" language="javascript" src="static/Detector.js"></script>
+        <script type = "text/javascript" language="javascript" src="static/libs/stats.min.js"></script>
+        <script type = "text/javascript" language="javascript" src="static/libs/OrbitControls.js"></script>
+        <script type = "text/javascript" language="javascript" src="static/libs/THREEx.KeyboardState.js"></script>
+        <script type = "text/javascript" language="javascript" src="static/libs/THREEx.FullScreen.js"></script>
+        <script type = "text/javascript" language="javascript" src="static/libs/THREEx.WindowResize.js"></script>
+        <script type = "text/javascript" language="javascript" src='static/libs/DAT.GUI.min.js'></script>
+		<script type = "text/javascript" language="javascript" src="javascript/everpolate.browserified.min.js"></script>
+		<script type = "text/javascript" language="javascript" src = "javascript/read-csv.js" charset="utf-8"></script>		
+		<script type = "text/javascript" language="javascript" src = "javascript/app.js" charset="utf-8"></script>		
+
+
+    </body>
+</html>
