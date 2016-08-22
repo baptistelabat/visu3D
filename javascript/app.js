@@ -75,7 +75,7 @@ var MyControl = function(){
 	this.x = -10
 	this.y = 0
 	this.z = -3
-	this.azimuth_deg=90
+	this.azimuth_deg=0
 	this.elevation_deg=0
 	
 };
@@ -213,19 +213,7 @@ function loadGeometry()
 		
 	var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
 	var VIEW_ANGLE = 75, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
-		cameraEmbedded = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
-		cameraChase = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
-		cameraEmbedded.up = new THREE.Vector3( 0, 0, -1 );
-		cameraChase.up = new THREE.Vector3( 0, 0, -1 );
-		elem3D.add( cameraEmbedded );
-		if (control.view=='embedded')
-		{
-			camera = cameraEmbedded
-		}
-		if (control.view=='chase')
-		{
-			camera = cameraChase
-		}
+
 	} );
 }
 
@@ -255,15 +243,47 @@ function init() {
 	scene = new THREE.Scene();
 	//scene.rotation.x = 90*Math.PI/180;
 	//scene.rotation.z = -90*Math.PI/180;
-	redCube = new THREE.Mesh( new THREE.CubeGeometry( 1,0.1,0.1 ), new THREE.MeshBasicMaterial({ color: 0xff0000}) );
-	redCube.position.x=0.5
-	scene.add(redCube)
-		greenCube = new THREE.Mesh( new THREE.CubeGeometry( 0.1,1,0.1 ), new THREE.MeshBasicMaterial({ color: 0x00ff00}) );
-	greenCube.position.y=0.5
-	scene.add(greenCube)
-		blueCube = new THREE.Mesh( new THREE.CubeGeometry( 0.1,0.1,1 ), new THREE.MeshBasicMaterial({ color: 0x0000ff}) );
-	blueCube.position.z=0.5
-	scene.add(blueCube)
+	
+	// Create world axis
+	triedre = new THREE.Mesh( new THREE.CubeGeometry( 0.1,0.1,0.1 ), new THREE.MeshBasicMaterial({ color: 0x000000}) );
+	xNorthAxisWorld = new THREE.Mesh( new THREE.CubeGeometry( 1,0.1,0.1 ), new THREE.MeshBasicMaterial({ color: 0xff0000}) );
+	xNorthAxisWorld.position.x=0.5
+	//scene.add(xNorthAxisWorld)
+	yEastAxisWorld = new THREE.Mesh( new THREE.CubeGeometry( 0.1,1,0.1 ), new THREE.MeshBasicMaterial({ color: 0x00ff00}) );
+	yEastAxisWorld.position.y=0.5
+	//scene.add(yEastAxisWorld)
+	zDownAxisWorld = new THREE.Mesh( new THREE.CubeGeometry( 0.1,0.1,1 ), new THREE.MeshBasicMaterial({ color: 0x0000ff}) );
+	zDownAxisWorld.position.z=0.5
+	triedre.add(xNorthAxisWorld)
+	triedre.add(yEastAxisWorld)
+	triedre.add(zDownAxisWorld)
+	scene.add(triedre)
+	
+	// Create local axis
+	xAxisBody = new THREE.Mesh( new THREE.CubeGeometry( 1,0.1,0.1 ), new THREE.MeshBasicMaterial({ color: 0xff0000}) );
+	xAxisBody.position.x=0.5
+	scene.add(xAxisBody)
+	yAxisBody = new THREE.Mesh( new THREE.CubeGeometry( 0.1,1,0.1 ), new THREE.MeshBasicMaterial({ color: 0x00ff00}) );
+	yAxisBody.position.y=0.5
+	scene.add(yAxisBody)
+	zAxisBody = new THREE.Mesh( new THREE.CubeGeometry( 0.1,0.1,1 ), new THREE.MeshBasicMaterial({ color: 0x0000ff}) );
+	zAxisBody.position.z=0.5
+	triedreBody =triedre.clone()
+	scene.add(triedreBody)
+	
+	cameraEmbedded = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
+	cameraChase = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
+	cameraEmbedded.up = new THREE.Vector3( 0, 0, -1 );
+	cameraChase.up = new THREE.Vector3( 0, 0, -1 );
+	triedreBody.add( cameraEmbedded );
+	if (control.view=='embedded')
+	{
+		camera = cameraEmbedded
+	}
+	if (control.view=='chase')
+	{
+		camera = cameraChase
+	}
 	
 	var grid = new THREE.GridHelper(1000, 13);
 	grid.rotation.x = -Math.PI/2
@@ -325,47 +345,50 @@ function animate() {
 	{
 		state = JSON.parse(myOutput.innerHTML);
 	}
+	triedreBody.rotation.order = 'ZYX';
+	triedreBody.rotation.x = state.roll_deg*Math.PI/180;
+	triedreBody.rotation.y = state.pitch_deg*Math.PI/180;
+	triedreBody.rotation.z = state.yaw_deg*Math.PI/180;
+	triedreBody.position.x = state.x
+	triedreBody.position.y = state.y
+	triedreBody.position.z = state.z
+	triedreBody.updateMatrix();
+	
+	tau = 10;
+	alpha =Math.exp(-delta/tau)
+	stateFilter.x= (1-alpha)*(state.x) + alpha*stateFilter.x
+	stateFilter.y= (1-alpha)*(state.y) + alpha*stateFilter.y
+	stateFilter.z= (1-alpha)*(state.z) + alpha*stateFilter.z
+	cameraChase.position.x = stateFilter.x+control.x
+	cameraChase.position.y = stateFilter.y+control.y
+	cameraChase.position.z = stateFilter.z+control.z
+	embeddedBearing = Math.atan2(state.y-cameraChase.position.y,state.x-cameraChase.position.x)
+	BearingDir = new THREE.Vector3( Math.cos(control.azimuth_deg*Math.PI/180+embeddedBearing)*Math.cos(control.elevation_deg*Math.PI/180), Math.sin(control.azimuth_deg*Math.PI/180+embeddedBearing)*Math.cos(control.elevation_deg*Math.PI/180), -Math.sin(control.elevation_deg*Math.PI/180)  );
+	BearingDir.add(cameraChase.position)
+	cameraChase.lookAt(BearingDir)
+	
+	BearingDir = new THREE.Vector3( Math.cos(control.azimuth_deg*Math.PI/180)*Math.cos(control.elevation_deg*Math.PI/180), Math.sin(control.azimuth_deg*Math.PI/180)*Math.cos(control.elevation_deg*Math.PI/180), -Math.sin(control.elevation_deg*Math.PI/180)  );
+	cameraEmbedded.position.set(control.x/control.scale, control.y/control.scale, control.z/control.scale)
+	BearingDir.add(cameraEmbedded.position)
+	cameraEmbedded.lookAt(BearingDir)
+	
+	BearingDir = new THREE.Vector3( Math.cos(control.azimuth_deg*Math.PI/180)*Math.cos(control.elevation_deg*Math.PI/180), Math.sin(control.azimuth_deg*Math.PI/180)*Math.cos(control.elevation_deg*Math.PI/180), -Math.sin(control.elevation_deg*Math.PI/180)  );
+	BearingDir.add(cameraIni.position)
+	cameraIni.lookAt(BearingDir)
+	cameraIni.position.x = control.x
+	cameraIni.position.y = control.y
+	cameraIni.position.z = control.z
 	if (elem3D!=null)
 	{
-		elem3D.rotation.order = 'YZX';
+		elem3D.rotation.order = 'ZYX';
 		// "Classical" roll, pitch, yaw euler angles
-		elem3D.rotation.x = state.roll_deg*Math.PI/180*0;
-		elem3D.rotation.z = state.pitch_deg*Math.PI/180*0;
-		elem3D.rotation.y = state.yaw_deg*Math.PI/180*0;
-		elem3D.position.x = state.x
-		elem3D.position.y = state.y
-		elem3D.position.z = state.z
+		elem3D.rotation = triedreBody.rotation
+		elem3D.position = triedreBody.position
 		//elem3D.quaternion.x = obj.q0
 		//elem3D.quaternion.y = obj.q1
 		//elem3D.quaternion.z = obj.q2
 		//elem3D.quaternion.w = obj.q3
 		elem3D.updateMatrix();
-
-		tau = 10;
-		alpha =Math.exp(-delta/tau)
-		stateFilter.x= (1-alpha)*(state.x) + alpha*stateFilter.x
-		stateFilter.y= (1-alpha)*(state.y) + alpha*stateFilter.y
-		stateFilter.z= (1-alpha)*(state.z) + alpha*stateFilter.z
-		cameraChase.position.x = stateFilter.x+control.x
-		cameraChase.position.y = stateFilter.y+control.y
-		cameraChase.position.z = stateFilter.z+control.z
-		embeddedBearing = Math.atan2(elem3D.position.y-cameraChase.position.y,elem3D.position.x-cameraChase.position.x)
-		BearingDir = new THREE.Vector3( Math.cos(control.azimuth_deg*Math.PI/180+embeddedBearing)*Math.cos(control.elevation_deg*Math.PI/180), Math.sin(control.azimuth_deg*Math.PI/180+embeddedBearing)*Math.cos(control.elevation_deg*Math.PI/180), -Math.sin(control.elevation_deg*Math.PI/180)  );
-		BearingDir.add(cameraChase.position)
-		cameraChase.lookAt(BearingDir)
-		
-		BearingDir = new THREE.Vector3( Math.cos(control.azimuth_deg*Math.PI/180)*Math.cos(control.elevation_deg*Math.PI/180), Math.sin(control.azimuth_deg*Math.PI/180)*Math.cos(control.elevation_deg*Math.PI/180), -Math.sin(control.elevation_deg*Math.PI/180)  );
-		cameraEmbedded.position.set(control.x/control.scale, control.y/control.scale, control.z/control.scale)
-		BearingDir.add(cameraEmbedded.position)
-		cameraEmbedded.lookAt(BearingDir)
-		
-		BearingDir = new THREE.Vector3( Math.cos(control.azimuth_deg*Math.PI/180)*Math.cos(control.elevation_deg*Math.PI/180), Math.sin(control.azimuth_deg*Math.PI/180)*Math.cos(control.elevation_deg*Math.PI/180), -Math.sin(control.elevation_deg*Math.PI/180)  );
-		BearingDir.add(cameraIni.position)
-		cameraIni.lookAt(BearingDir)
-		cameraIni.position.x = control.x
-		cameraIni.position.y = control.y
-		cameraIni.position.z = control.z
-
 	}
 		//cameraIni.lookAt(cube.position)
 	render();
