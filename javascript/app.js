@@ -288,6 +288,11 @@ function init() {
 	var grid = new THREE.GridHelper(1000, 13);
 	grid.rotation.x = -Math.PI/2
 	scene.add(grid);
+	
+	waterSurface = new THREE.Mesh( new THREE.CubeGeometry( 10000,10000,0.1 ), new THREE.MeshBasicMaterial({ color: 0x00ffff, opacity:0.7, transparent: true}) );
+	waterSurface.position.z=0.06
+	scene.add(waterSurface)
+	
 
 	particleLight = new THREE.Mesh( new THREE.SphereGeometry( 0.003, 8, 8 ), new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe : true } ) );
 	scene.add( particleLight );
