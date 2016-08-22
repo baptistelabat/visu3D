@@ -1,36 +1,7 @@
 console.log("This is a 3D visualizator");
 
-var screenW = window.innerWidth;
-var screenH = window.innerHeight; /*SCREEN*/
-var spdx = 0, spdy = 0, mouseDown = false, mouseX=0, mouseY=0; /*MOUSE*/
-var azimuth_deg=0, elevation_deg=0;
-document.addEventListener('mousemove', function(event) {
-    mouseX = event.pageX;
-    mouseY = event.pageY;
 
-	if (mouseDown)
-	{	
-		control.azimuth_deg=azimuth_deg   - (mouseX-mouseDownX)/screenW*75;
-		//console.log(control.azimuth_deg)
-		control.elevation_deg=elevation_deg + (mouseY-mouseDownY)/screenH*75;
-	}
-}, false);
-document.body.addEventListener("mousedown", function(event) {
-    mouseDown = true
-	mouseDownX = event.pageX;
-	mouseDownY = event.pageY;
-	
-	azimuth_deg = control.azimuth_deg
-	elevation_deg = control.elevation_deg
-}, false);
-document.body.addEventListener("mouseup", function(event) {
-    mouseDown = false
-	mouseUpX = event.pageX
-	mouseUpY = event.pageY
 
-	control.azimuth_deg=azimuth_deg   - (mouseUpX-mouseDownX)/screenW*75;
-	control.elevation_deg=elevation_deg + (mouseUpY-mouseDownY)/screenH*75;
-}, false);
 
 
 
@@ -426,5 +397,38 @@ function update() {
 function render() {
 	renderer.render( scene, camera );
 }
+
+var screenW = window.innerWidth;
+var screenH = window.innerHeight; /*SCREEN*/
+var spdx = 0, spdy = 0, mouseDown = false, mouseX=0, mouseY=0; /*MOUSE*/
+var azimuth_deg=0, elevation_deg=0;
+renderer.domElement.addEventListener('mousemove', function(event) {
+    mouseX = event.pageX;
+    mouseY = event.pageY;
+
+	if (mouseDown)
+	{	
+		control.azimuth_deg=azimuth_deg   - (mouseX-mouseDownX)/screenW*75;
+		//console.log(control.azimuth_deg)
+		control.elevation_deg=elevation_deg + (mouseY-mouseDownY)/screenH*75;
+	}
+}, false);
+renderer.domElement.addEventListener("mousedown", function(event) {
+    mouseDown = true
+	mouseDownX = event.pageX;
+	console.log(mouseDownX)
+	mouseDownY = event.pageY;
+	
+	azimuth_deg = control.azimuth_deg
+	elevation_deg = control.elevation_deg
+}, false);
+renderer.domElement.addEventListener("mouseup", function(event) {
+    mouseDown = false
+	mouseUpX = event.pageX
+	mouseUpY = event.pageY
+
+	control.azimuth_deg=azimuth_deg   - (mouseUpX-mouseDownX)/screenW*75;
+	control.elevation_deg=elevation_deg + (mouseUpY-mouseDownY)/screenH*75;
+}, false);
 
 
