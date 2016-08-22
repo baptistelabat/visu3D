@@ -71,12 +71,13 @@ var MyControl = function(){
 	{
 		this.selected3DFile = 'None'
 	}
-	this.view = 'anchored'
+	this.view = 'embedded'
 	this.x = -10
 	this.y = 0
 	this.z = -3
 	this.azimuth_deg=0
 	this.elevation_deg=0
+	this.chaseTimeConstant = 2;
 	
 };
 
@@ -102,6 +103,7 @@ f3.add(control, 'y').min(-100).max(100)
 f3.add(control, 'z').min(-30).max(5)
 f3.add(control, 'azimuth_deg')
 f3.add(control, 'elevation_deg')
+f3.add(control, 'chaseTimeConstant').min(1).max(20)
 
 cameraController.onFinishChange(function(cam){
 	if (cam=='anchored')
@@ -129,6 +131,9 @@ cameraController.onFinishChange(function(cam){
 		else
 		{
 			//control.view = 'embedded'
+			stateFilter.x = state.x
+			stateFilter.y = state.y
+			stateFilter.z = state.z
 			camera= cameraChase
 		}
 	}
@@ -136,6 +141,7 @@ cameraController.onFinishChange(function(cam){
 });
 timeController.onChange(function(timeValue){
 	t= timeValue;
+	timeController.max(times[times.length-2])
 })
 scaleController.onChange(function(scale){
 	if (elem3D!=null)
@@ -206,45 +212,50 @@ function loadGeometry()
 		skin = collada.skins[ 0 ];
 		elem3D.scale.x = elem3D.scale.y = elem3D.scale.z = control.scale;
 		// Add the COLLADA      
-		scene.add( elem3D );			
-		oldElem3Dx = 0
-		oldElem3Dy = 0
-		oldElem3Dz = 0
-		
-	var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
-	var VIEW_ANGLE = 75, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
-
+		triedreBody.add( elem3D );			
 	} );
 }
 
 
 function init() {
-
+	
+	scene = new THREE.Scene();
 	container = document.createElement( 'div' );
 	document.body.appendChild( container );
 	// CAMERA
 	var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
 	var VIEW_ANGLE = 75, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
-	//camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
 	camera.up = new THREE.Vector3( 0, 0, -1 );
-	camera.position.set( -0,-5,-0);
 	cameraIni = camera
 	North = new THREE.Vector3( 1, 0, 0 );
 	North.add(cameraIni.position)
 	cameraIni.lookAt(North)
 	
+	cameraEmbedded = cameraIni.clone()
+	cameraEmbedded.up = new THREE.Vector3( 0, 0, -1 );
+	cameraFrame = new THREE.Mesh( new THREE.CubeGeometry( 0.1,0.1,0.1 ), new THREE.MeshBasicMaterial({ color: 0x000000, transparent:true, opacity:0.}) );
+	cameraFrame.add(cameraEmbedded)
 
 	
-	
-	//camera.rotation.order ='ZYX'
-	//camera.rotation.z=45*Math.PI/180;
 
-	scene = new THREE.Scene();
-	//scene.rotation.x = 90*Math.PI/180;
-	//scene.rotation.z = -90*Math.PI/180;
+
 	
-	// Create world axis
+	cameraChase = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
+	
+	cameraChase.up = new THREE.Vector3( 0, 0, -1 );
+	
+
+	if (control.view=='embedded')
+	{
+		camera = cameraEmbedded
+	}
+	if (control.view=='chase')
+	{
+		camera = cameraChase
+	}
+
+		// Create world axis
 	triedre = new THREE.Mesh( new THREE.CubeGeometry( 0.1,0.1,0.1 ), new THREE.MeshBasicMaterial({ color: 0x000000}) );
 	xNorthAxisWorld = new THREE.Mesh( new THREE.CubeGeometry( 1,0.1,0.1 ), new THREE.MeshBasicMaterial({ color: 0xff0000}) );
 	xNorthAxisWorld.position.x=0.5
@@ -260,30 +271,9 @@ function init() {
 	scene.add(triedre)
 	
 	// Create local axis
-	xAxisBody = new THREE.Mesh( new THREE.CubeGeometry( 1,0.1,0.1 ), new THREE.MeshBasicMaterial({ color: 0xff0000}) );
-	xAxisBody.position.x=0.5
-	scene.add(xAxisBody)
-	yAxisBody = new THREE.Mesh( new THREE.CubeGeometry( 0.1,1,0.1 ), new THREE.MeshBasicMaterial({ color: 0x00ff00}) );
-	yAxisBody.position.y=0.5
-	scene.add(yAxisBody)
-	zAxisBody = new THREE.Mesh( new THREE.CubeGeometry( 0.1,0.1,1 ), new THREE.MeshBasicMaterial({ color: 0x0000ff}) );
-	zAxisBody.position.z=0.5
 	triedreBody =triedre.clone()
+	triedreBody.add( cameraFrame);
 	scene.add(triedreBody)
-	
-	cameraEmbedded = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
-	cameraChase = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
-	cameraEmbedded.up = new THREE.Vector3( 0, 0, -1 );
-	cameraChase.up = new THREE.Vector3( 0, 0, -1 );
-	triedreBody.add( cameraEmbedded );
-	if (control.view=='embedded')
-	{
-		camera = cameraEmbedded
-	}
-	if (control.view=='chase')
-	{
-		camera = cameraChase
-	}
 	
 	var grid = new THREE.GridHelper(1000, 13);
 	grid.rotation.x = -Math.PI/2
@@ -359,11 +349,17 @@ function animate() {
 	triedreBody.position.z = state.z
 	triedreBody.updateMatrix();
 	
-	tau = 10;
-	alpha =Math.exp(-delta/tau)
+	tau = Math.max(0.1,control.chaseTimeConstant);
+	alpha =Math.exp(-delta/tau*control.speed)
 	stateFilter.x= (1-alpha)*(state.x) + alpha*stateFilter.x
 	stateFilter.y= (1-alpha)*(state.y) + alpha*stateFilter.y
 	stateFilter.z= (1-alpha)*(state.z) + alpha*stateFilter.z
+	if (isNaN(stateFilter.x)||isNaN(stateFilter.y)||isNaN(stateFilter.z))
+	{
+		stateFilter.x = state.x
+		stateFilter.y = state.y
+		stateFilter.z = state.z
+	}
 	cameraChase.position.x = stateFilter.x+control.x
 	cameraChase.position.y = stateFilter.y+control.y
 	cameraChase.position.z = stateFilter.z+control.z
@@ -372,10 +368,10 @@ function animate() {
 	BearingDir.add(cameraChase.position)
 	cameraChase.lookAt(BearingDir)
 	
-	BearingDir = new THREE.Vector3( Math.cos(control.azimuth_deg*Math.PI/180)*Math.cos(control.elevation_deg*Math.PI/180), Math.sin(control.azimuth_deg*Math.PI/180)*Math.cos(control.elevation_deg*Math.PI/180), -Math.sin(control.elevation_deg*Math.PI/180)  );
-	cameraEmbedded.position.set(control.x/control.scale, control.y/control.scale, control.z/control.scale)
-	BearingDir.add(cameraEmbedded.position)
-	cameraEmbedded.lookAt(BearingDir)
+	BearingDirEmbedded = new THREE.Vector3( Math.cos(control.azimuth_deg*Math.PI/180)*Math.cos(control.elevation_deg*Math.PI/180), Math.sin(control.azimuth_deg*Math.PI/180)*Math.cos(control.elevation_deg*Math.PI/180), -Math.sin(control.elevation_deg*Math.PI/180)  );
+	cameraFrame.position.set(control.x/control.scale, control.y/control.scale, control.z/control.scale)
+	BearingDirEmbedded.add(cameraEmbedded.position)
+	cameraEmbedded.lookAt(BearingDirEmbedded)//new THREE.Vector3(1,0,0))
 	
 	BearingDir = new THREE.Vector3( Math.cos(control.azimuth_deg*Math.PI/180)*Math.cos(control.elevation_deg*Math.PI/180), Math.sin(control.azimuth_deg*Math.PI/180)*Math.cos(control.elevation_deg*Math.PI/180), -Math.sin(control.elevation_deg*Math.PI/180)  );
 	BearingDir.add(cameraIni.position)
@@ -383,35 +379,12 @@ function animate() {
 	cameraIni.position.x = control.x
 	cameraIni.position.y = control.y
 	cameraIni.position.z = control.z
-	if (elem3D!=null)
-	{
-		elem3D.rotation.order = 'ZYX';
-		// "Classical" roll, pitch, yaw euler angles
-		elem3D.rotation = triedreBody.rotation
-		elem3D.position = triedreBody.position
-		//elem3D.quaternion.x = obj.q0
-		//elem3D.quaternion.y = obj.q1
-		//elem3D.quaternion.z = obj.q2
-		//elem3D.quaternion.w = obj.q3
-		elem3D.updateMatrix();
-	}
-		//cameraIni.lookAt(cube.position)
+
 	render();
 	update();
 }
 function update() {
 		//controls.update();
-		/*if (elem3D!=null)
-		{
-			camera.position.x = camera.position.x + elem3D.position.x-oldElem3Dx
-			camera.position.y = camera.position.y + elem3D.position.y-oldElem3Dy
-			camera.position.z = camera.position.z + elem3D.position.z-oldElem3Dz
-			oldElem3Dx = elem3D.position.x
-			oldElem3Dy = elem3D.position.y
-			oldElem3Dz = elem3D.position.z
-		}*/
-		//camera.position = elem3D.position
-		//camera.lookAt(elem3D.position)
 		stats.update();
 }
 

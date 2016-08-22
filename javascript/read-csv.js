@@ -52,7 +52,13 @@ function errorHandler(evt) {
 
 function drawOutput(lines){
   
-  
+	times = [];
+	rolls = [];
+	pitchs = [];
+	yaws = [];
+	xs = [];
+	ys = [];
+	zs = [];
 	//Clear previous data
 	document.getElementById("output").innerHTML = "";
 	var table = document.createElement("table");
