@@ -1,4 +1,39 @@
 console.log("This is a 3D visualizator");
+
+var screenW = window.innerWidth;
+var screenH = window.innerHeight; /*SCREEN*/
+var spdx = 0, spdy = 0, mouseDown = false, mouseX=0, mouseY=0; /*MOUSE*/
+var azimuth_deg=0, elevation_deg=0;
+document.addEventListener('mousemove', function(event) {
+    mouseX = event.pageX;
+    mouseY = event.pageY;
+
+	if (mouseDown)
+	{	
+		control.azimuth_deg=azimuth_deg   - (mouseX-mouseDownX)/screenW*75;
+		//console.log(control.azimuth_deg)
+		control.elevation_deg=elevation_deg + (mouseY-mouseDownY)/screenH*75;
+	}
+}, false);
+document.body.addEventListener("mousedown", function(event) {
+    mouseDown = true
+	mouseDownX = event.pageX;
+	mouseDownY = event.pageY;
+	
+	azimuth_deg = control.azimuth_deg
+	elevation_deg = control.elevation_deg
+}, false);
+document.body.addEventListener("mouseup", function(event) {
+    mouseDown = false
+	mouseUpX = event.pageX
+	mouseUpY = event.pageY
+
+	control.azimuth_deg=azimuth_deg   - (mouseUpX-mouseDownX)/screenW*75;
+	control.elevation_deg=elevation_deg + (mouseUpY-mouseDownY)/screenH*75;
+}, false);
+
+
+
 var camera, scene, renderer, objects, controls;
 var t	= 0
 var clock = new THREE.Clock();
@@ -101,8 +136,8 @@ cameraController = f3.add(control, 'view',['anchored','embedded', 'chase']);
 f3.add(control, 'x').min(-100).max(100)
 f3.add(control, 'y').min(-100).max(100)
 f3.add(control, 'z').min(-30).max(5)
-f3.add(control, 'azimuth_deg')
-f3.add(control, 'elevation_deg')
+f3.add(control, 'azimuth_deg').listen()
+f3.add(control, 'elevation_deg').listen()
 f3.add(control, 'chaseTimeConstant').min(1).max(20)
 
 cameraController.onFinishChange(function(cam){
@@ -324,7 +359,7 @@ function init() {
 
 
 function animate() {
-
+	
 	var delta = clock.getDelta();
 
 	requestAnimationFrame( animate );
