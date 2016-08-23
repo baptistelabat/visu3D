@@ -63,24 +63,35 @@ function drawOutput(lines){
 	document.getElementById("output").innerHTML = "";
 	var table = document.createElement("table");
 	for (var i = 0; i < lines.length; i++) {
-    i_t = 0;
-    i_roll  = 1;
-    i_pitch = 2;
-	i_yaw   = 3;
-	i_x		= 4;
-	i_y   	= 5;
-	i_z 	= 6;
-    times[i] = parseFloat(lines[i][i_t]);
-    rolls[i] = parseFloat(lines[i][i_roll]);
-    pitchs[i] = parseFloat(lines[i][i_pitch]);
-	yaws[i] = parseFloat(lines[i][i_yaw]);
-	xs[i] = parseFloat(lines[i][i_x]);
-	ys[i] = parseFloat(lines[i][i_y]);
-	zs[i] = parseFloat(lines[i][i_z]);
-		var row = table.insertRow(-1);
-		for (var j = 0; j < lines[i].length; j++) {
-			var firstNameCell = row.insertCell(-1);
-			firstNameCell.appendChild(document.createTextNode(lines[i][j]));
+		i_t = 0;
+		i_roll  = 1;
+		i_pitch = 2;
+		i_yaw   = 3;
+		i_x		= 4;
+		i_y   	= 5;
+		i_z 	= 6;
+		timei = parseFloat(lines[i][i_t]);
+		rolli = parseFloat(lines[i][i_roll]);
+		pitchi = parseFloat(lines[i][i_pitch]);
+		yawi  = parseFloat(lines[i][i_yaw]);
+		xi = parseFloat(lines[i][i_x]);
+		yi = parseFloat(lines[i][i_y]);
+		zi = parseFloat(lines[i][i_z]);
+	
+		if (false==isNaN(timei+rolli+pitchi+xi+yi+zi))
+		{
+			times[i] = timei
+			rolls[i] = rolli
+			pitchs[i]=pitchi
+			yaws[i]=yawi
+			xs[i]=xi
+			ys[i]=yi
+			zs[i]=zi
+			var row = table.insertRow(-1);
+			for (var j = 0; j < lines[i].length; j++) {
+				var firstNameCell = row.insertCell(-1);
+				firstNameCell.appendChild(document.createTextNode(lines[i][j]));
+			}
 		}
 	}
 	//document.getElementById("output").appendChild(table);
