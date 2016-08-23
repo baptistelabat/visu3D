@@ -147,7 +147,7 @@ cameraController.onFinishChange(function(cam){
 });
 timeController.onChange(function(timeValue){
 	t= timeValue;
-	timeController.max(times[times.length-2])
+	timeController.max(times[times.length-1])
 })
 scaleController.onChange(function(scale){
 	if (elem3D!=null)
@@ -202,7 +202,7 @@ function loadGeometry()
 	loader.load( './static/' + fileElem3D.files[0].name, function ( collada ) {
 		if (elem3D!=null)
 		{
-			scene.remove(elem3D)
+			triedreBody.remove(elem3D)
 		}
 		elem3D = collada.scene;
 		
@@ -218,7 +218,7 @@ function loadGeometry()
 		skin = collada.skins[ 0 ];
 		elem3D.scale.x = elem3D.scale.y = elem3D.scale.z = control.scale;
 		// Add the COLLADA      
-		triedreBody.add( elem3D );			
+		triedreBody.add( elem3D );
 	} );
 }
 
@@ -230,7 +230,7 @@ function init() {
 	document.body.appendChild( container );
 	// CAMERA
 	var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
-	var VIEW_ANGLE = 75, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
+	var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 1, FAR = 1000;
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
 	camera.up = new THREE.Vector3( 0, 0, -1 );
 	cameraIni = camera
@@ -308,7 +308,7 @@ function init() {
 	pointLight.position = particleLight.position;
 	scene.add( pointLight );
 
-	renderer = new THREE.WebGLRenderer();
+	renderer = new THREE.WebGLRenderer({ alpha: true });
 	renderer.setSize( window.innerWidth, window.innerHeight );
 
 	container.appendChild( renderer.domElement );
