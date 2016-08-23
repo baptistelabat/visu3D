@@ -71,16 +71,15 @@ var MyControl = function(){
 	if (fileElem3D.files.length>0)
 	{
 		this.selected3DFile = fileElem3D.files[0].name
-		loadGeometry();
 	}
 	else
 	{
 		this.selected3DFile = 'None'
 	}
 	this.view = 'embedded'
-	this.x = -10
+	this.x = -25
 	this.y = 0
-	this.z = -3
+	this.z = -7
 	this.azimuth_deg=0
 	this.elevation_deg=0
 	this.chaseTimeConstant = 2;
@@ -204,6 +203,10 @@ function loadGeometry()
 		{
 			triedreBody.remove(elem3D)
 		}
+		if (boat!=null)
+		{
+			triedreBody.remove(boat)
+		}
 		elem3D = collada.scene;
 		
 		// Depending on file the geometry is the first or the second children
@@ -281,7 +284,7 @@ function init() {
 	triedreBody.add( cameraFrame);
 	scene.add(triedreBody)
 	
-	var grid = new THREE.GridHelper(1000, 13);
+	var grid = new THREE.GridHelper(13000, 2000);
 	grid.rotation.x = -Math.PI/2
 	scene.add(grid);
 	
@@ -322,10 +325,50 @@ function init() {
 	// EVENTS
 	THREEx.WindowResize(renderer, camera);
 	THREEx.FullScreen.bindKey({ charCode : 'm'.charCodeAt(0) });
+	elem3D = new THREE.Mesh( new THREE.CubeGeometry( 0.01,0.01,0.01), new THREE.MeshBasicMaterial({ color: 0x0000ff}) );
+	createDefaultBoat()
+	triedreBody.add(boat)
 }
 
 //
 
+function createDefaultBoat()
+{
+	boat = new THREE.Mesh( new THREE.CubeGeometry( 0.1,0.1,0.1), new THREE.MeshBasicMaterial({ color: 0x0000ff}) );
+	portHull = new THREE.Mesh( new THREE.CubeGeometry( 13,1,1.5), new THREE.MeshPhongMaterial({ color: 0x0000ff}) );
+	portHull.position.z = -0.5
+	MWP = new THREE.Mesh( new THREE.CubeGeometry( 13.2,1.1,0.01), new THREE.MeshPhongMaterial({ color: 0xffffff}) );
+	MWP.position.z=0.5
+	portHull.add(MWP)
+	stbdHull = portHull.clone()
+	portHull.position.y = -3.75
+	stbdHull.position.y =  3.75
+	wing = new THREE.Mesh( new THREE.CubeGeometry( 4,0.5,25), new THREE.MeshPhongMaterial({ color: 0xffffff}) );
+	wing.position.z = -13.5
+	wing.position.x = -1.5
+	wing.rotation.z = 10*Math.PI/180
+	foil = new THREE.Mesh( new THREE.CubeGeometry( 0.4,0.1,3), new THREE.MeshPhongMaterial({ color: 0x000000}) );
+	tip = new THREE.Mesh( new THREE.CubeGeometry( 0.4,2,0.1), new THREE.MeshPhongMaterial({ color: 0x000000}) );
+	knee = new THREE.Mesh( new THREE.CubeGeometry( 0.1,0.1,0.1), new THREE.MeshPhongMaterial({ color: 0x000000}) );
+	tip.position.y=1
+	knee.add(tip)
+	foil.add(knee)
+	knee.position.z =1.5
+	knee.rotation.x=-14*Math.PI/180
+	foil.position.z=0.9
+	foil.position.y=-3.75
+	foil.position.x=1
+	trampo = new THREE.Mesh( new THREE.CubeGeometry( 8,7.5,0.01), new THREE.MeshPhongMaterial({ color: 0x000000, transparent:true, opacity:0.5}) );
+	trampo.position.x=-2.5
+	trampo.position.z=-0.75
+	boat.add(portHull)
+	boat.add(stbdHull)
+	boat.add(wing)
+	boat.add(foil)
+	boat.add(trampo)
+	boat.position.z=-0.25
+	elem3D.add(boat)
+}
 
 
 
@@ -375,7 +418,7 @@ function animate() {
 	cameraChase.lookAt(BearingDir)
 	
 	BearingDirEmbedded = new THREE.Vector3( Math.cos(control.azimuth_deg*Math.PI/180)*Math.cos(control.elevation_deg*Math.PI/180), Math.sin(control.azimuth_deg*Math.PI/180)*Math.cos(control.elevation_deg*Math.PI/180), -Math.sin(control.elevation_deg*Math.PI/180)  );
-	cameraFrame.position.set(control.x/control.scale, control.y/control.scale, control.z/control.scale)
+	cameraFrame.position.set(control.x, control.y, control.z)
 	BearingDirEmbedded.add(cameraEmbedded.position)
 	cameraEmbedded.lookAt(BearingDirEmbedded)//new THREE.Vector3(1,0,0))
 	
