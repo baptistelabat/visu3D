@@ -55,7 +55,7 @@ var MyControl = function(){
 		logFileElem = document.getElementById("csvFileInput");
 		logFileElem.click();
 	}
-	this.select3DFile = function(){
+	this.select3DFileDAE = function(){
 		fileElem3D = document.getElementById("daeFileInput");
 		fileElem3D.click();
 	}
@@ -70,16 +70,16 @@ var MyControl = function(){
 	}
 	if (fileElem3D.files.length>0)
 	{
-		this.selected3DFile = fileElem3D.files[0].name
+		this.selected3DFileDAE = fileElem3D.files[0].name
 	}
 	else
 	{
-		this.selected3DFile = 'None'
+		this.selected3DFileDAE = 'None'
 	}
 	this.view = 'embedded'
 	this.x = -25
 	this.y = 0
-	this.z = -7
+	this.z = -5
 	this.azimuth_deg=0
 	this.elevation_deg=0
 	this.chaseTimeConstant = 2;
@@ -99,8 +99,8 @@ var typeController = f1.add(control, 'inputType',['Log file', 'Websocket']);
 f1.add(control, 'websocketAddress');
 f1.add(control, 'selectLogFile');
 f1.add(control, 'selectedLogFile').listen();
-f1.add(control, 'select3DFile');
-f1.add(control, 'selected3DFile').listen();
+f1.add(control, 'select3DFileDAE');
+f1.add(control, 'selected3DFileDAE').listen();
 scaleController = f1.add(control, 'scale')
 cameraController = f3.add(control, 'view',['anchored','embedded', 'chase']);
 f3.add(control, 'x').min(-100).max(100)
@@ -190,7 +190,7 @@ function loadLogFiles(files)
 	handleFiles(files);
 }
 function loadDAEFiles(files){
-	control.selected3DFile = files[0].name;
+	control.selected3DFileDAE = files[0].name;
 	loadGeometry();
 }
 
@@ -288,7 +288,7 @@ function init() {
 	grid.rotation.x = -Math.PI/2
 	scene.add(grid);
 	
-	waterSurface = new THREE.Mesh( new THREE.CubeGeometry( 10000,10000,0.1 ), new THREE.MeshBasicMaterial({ color: 0x00ffff, opacity:0.7, transparent: true}) );
+	waterSurface = new THREE.Mesh( new THREE.CubeGeometry( 100000,100000,0.1 ), new THREE.MeshBasicMaterial({ color: 0x00ffff, opacity:0.7, transparent: true}) );
 	waterSurface.position.z=0.06
 	scene.add(waterSurface)
 	
@@ -360,12 +360,24 @@ function createDefaultBoat()
 	foil.position.x=1
 	trampo = new THREE.Mesh( new THREE.CubeGeometry( 8,7.5,0.01), new THREE.MeshPhongMaterial({ color: 0x000000, transparent:true, opacity:0.5}) );
 	trampo.position.x=-2.5
-	trampo.position.z=-0.75
+	trampo.position.z=-0.75-0.5
+	
+	rudderPort = new THREE.Mesh( new THREE.CubeGeometry( 0.2,0.05,3), new THREE.MeshPhongMaterial({ color: 0x000000}) );
+	elevator = new THREE.Mesh( new THREE.CubeGeometry( 0.2,1.3,0.05), new THREE.MeshPhongMaterial({ color: 0x000000}) );
+	elevator.position.z=1.5
+	rudderPort.add(elevator)
+	rudderPort.position.z=0.7
+	rudderPort.position.x=-6.5
+	rudderStbd = rudderPort.clone()
+	rudderPort.position.y = -3.75
+	rudderStbd.position.y=3.75
 	boat.add(portHull)
 	boat.add(stbdHull)
 	boat.add(wing)
 	boat.add(foil)
 	boat.add(trampo)
+	boat.add(rudderPort)
+	boat.add(rudderStbd)
 	boat.position.z=-0.25
 	elem3D.add(boat)
 }
