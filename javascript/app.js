@@ -92,7 +92,7 @@ var f1 = gui.addFolder('Input');
 var f2 = gui.addFolder('Time control');
 var f3 = gui.addFolder('View');
 
-var timeController = f2.add(control, 'time').step(0.1).min(0.).max(10.).listen();
+var timeController = f2.add(control, 'time').step(0.1).min(0).max(10).listen();
 f2.add(control, 'speed').min(-20).max(20).step(0.2);
 
 var typeController = f1.add(control, 'inputType',['Log file', 'Websocket']);
@@ -149,6 +149,7 @@ timeController.onChange(function(timeValue){
 	if (times.length>0)
 	{
 		timeController.max(times[times.length-1])
+		timeController.min(times[0])
 	}
 })
 scaleController.onChange(function(scale){
