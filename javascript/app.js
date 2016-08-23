@@ -84,7 +84,8 @@ var MyControl = function(){
 	this.azimuth_deg=0
 	this.elevation_deg=0
 	this.chaseTimeConstant = 2;
-	this.displayTrace = true
+	this.displayTrace = false;
+	this.traceTimeInterval=1;
 	
 };
 
@@ -112,6 +113,7 @@ f3.add(control, 'azimuth_deg').listen()
 f3.add(control, 'elevation_deg').listen()
 f3.add(control, 'chaseTimeConstant').min(1).max(20)
 var traceController = f3.add(control, 'displayTrace')
+f3.add(control, 'traceTimeInterval').min(0.1)
 
 traceController.onChange(function(traceOrNot){
 	for (var i = 0; i < traceList.length; i ++ )
@@ -461,7 +463,7 @@ function animate() {
 	cameraIni.position.y = control.y
 	cameraIni.position.z = control.z
 	
-	if ((Math.abs(t-lastTime)>1)&&(control.displayTrace))
+	if ((Math.abs(t-lastTime)>control.traceTimeInterval)&&(control.displayTrace))
 	{
 		lastTime = t
 		trace=triedreBody.clone()
