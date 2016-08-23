@@ -103,9 +103,9 @@ f1.add(control, 'select3DFileDAE');
 f1.add(control, 'selected3DFileDAE').listen();
 scaleController = f1.add(control, 'scale')
 cameraController = f3.add(control, 'view',['anchored','embedded', 'chase']);
-f3.add(control, 'x').min(-100).max(100)
-f3.add(control, 'y').min(-100).max(100)
-f3.add(control, 'z').min(-30).max(5)
+f3.add(control, 'x').min(-100).max(100).listen()
+f3.add(control, 'y').min(-100).max(100).listen()
+f3.add(control, 'z').min(-30).max(5).listen()
 f3.add(control, 'azimuth_deg').listen()
 f3.add(control, 'elevation_deg').listen()
 f3.add(control, 'chaseTimeConstant').min(1).max(20)
@@ -146,7 +146,10 @@ cameraController.onFinishChange(function(cam){
 });
 timeController.onChange(function(timeValue){
 	t= timeValue;
-	timeController.max(times[times.length-1])
+	if (times.length>0)
+	{
+		timeController.max(times[times.length-1])
+	}
 })
 scaleController.onChange(function(scale){
 	if (elem3D!=null)
@@ -171,6 +174,7 @@ typeController.onChange(function(value){
 })
 
 function interpState(t){
+	
 	if (times.length >0){
 		state.roll_deg = everpolate.linear(t, times, rolls);
 		state.pitch_deg = everpolate.linear(t, times, pitchs);
@@ -391,6 +395,10 @@ function animate() {
 	requestAnimationFrame( animate );
 
 	t += delta*control.speed;
+	if (times.length>0)
+	{
+		t= Math.max(times[0], Math.min(t, times[times.length-1]))
+	}
 	control.time = t;
 
 	if (control.inputType=='Log file')
@@ -455,33 +463,66 @@ function render() {
 
 var screenW = window.innerWidth;
 var screenH = window.innerHeight; /*SCREEN*/
-var spdx = 0, spdy = 0, mouseDown = false, mouseX=0, mouseY=0; /*MOUSE*/
+var spdx = 0, spdy = 0, mouseLeftDown = false, mouseX=0, mouseY=0; /*MOUSE*/
+var mouseCenterDown = false
 var azimuth_deg=0, elevation_deg=0;
+var  mouseLeftDownX=0, mouseLeftDownY=0, mouseCenterDownX=0, mouseCenterDownY=0
+var z_cam=0, y_cam=0
 renderer.domElement.addEventListener('mousemove', function(event) {
     mouseX = event.pageX;
     mouseY = event.pageY;
 
-	if (mouseDown)
+	if (mouseLeftDown)
 	{	
-		control.azimuth_deg=azimuth_deg   - (mouseX-mouseDownX)/screenW*75;
-		control.elevation_deg=elevation_deg + (mouseY-mouseDownY)/screenH*75;
+		control.azimuth_deg=azimuth_deg   - (mouseX-mouseLeftDownX)/screenW*75;
+		control.elevation_deg=elevation_deg + (mouseY-mouseLeftDownY)/screenH*75;
+	}
+	if (mouseCenterDown)
+	{	
+		control.y=y_cam   - (mouseX-mouseCenterDownX)/screenW*30;
+		control.z=z_cam - (mouseY-mouseCenterDownY)/screenH*20;
 	}
 }, false);
 renderer.domElement.addEventListener("mousedown", function(event) {
-    mouseDown = true
-	mouseDownX = event.pageX;
-	mouseDownY = event.pageY;
+	if (event.which==1)
+	{
+		mouseLeftDown = true
+		mouseLeftDownX = event.pageX;
+		mouseLeftDownY = event.pageY;
+		azimuth_deg = control.azimuth_deg
+		elevation_deg = control.elevation_deg
+	}
 	
-	azimuth_deg = control.azimuth_deg
-	elevation_deg = control.elevation_deg
+	if (event.which==2)
+	{
+		mouseCenterDown = true
+		mouseCenterDownX = event.pageX;
+		mouseCenterDownY = event.pageY;
+		z_cam = control.z
+		y_cam = control.y
+	}
+
+	
+	
+
 }, false);
 renderer.domElement.addEventListener("mouseup", function(event) {
-    mouseDown = false
-	mouseUpX = event.pageX
-	mouseUpY = event.pageY
+	mouseX = event.pageX
+	mouseY = event.pageY
+	if (event.which==1)
+	{
+		mouseLeftDown = false
+		control.azimuth_deg=azimuth_deg   - (mouseX-mouseLeftDownX)/screenW*75;
+		control.elevation_deg=elevation_deg + (mouseY-mouseLeftDownY)/screenH*75;
+	}
+	if (event.which==2)
+	{
+		mouseCenterDown = false
 
-	control.azimuth_deg=azimuth_deg   - (mouseUpX-mouseDownX)/screenW*75;
-	control.elevation_deg=elevation_deg + (mouseUpY-mouseDownY)/screenH*75;
+		control.y=y_cam   - (mouseX-mouseCenterDownX)/screenW*30;
+		control.z=z_cam   - (mouseY-mouseCenterDownY)/screenH*20;
+	}
+
 }, false);
 
 
