@@ -409,14 +409,12 @@ renderer.domElement.addEventListener('mousemove', function(event) {
 	if (mouseDown)
 	{	
 		control.azimuth_deg=azimuth_deg   - (mouseX-mouseDownX)/screenW*75;
-		//console.log(control.azimuth_deg)
 		control.elevation_deg=elevation_deg + (mouseY-mouseDownY)/screenH*75;
 	}
 }, false);
 renderer.domElement.addEventListener("mousedown", function(event) {
     mouseDown = true
 	mouseDownX = event.pageX;
-	console.log(mouseDownX)
 	mouseDownY = event.pageY;
 	
 	azimuth_deg = control.azimuth_deg
