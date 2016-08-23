@@ -3,10 +3,11 @@ console.log("This is a 3D visualizator");
 
 
 
-
+var traceList= new Array()
 
 var camera, scene, renderer, objects, controls;
-var t	= 0
+var t	= 0, lastTime=0
+
 var clock = new THREE.Clock();
 logFileElem = document.getElementById("csvFileInput");
 fileElem3D = document.getElementById("daeFileInput");
@@ -83,6 +84,7 @@ var MyControl = function(){
 	this.azimuth_deg=0
 	this.elevation_deg=0
 	this.chaseTimeConstant = 2;
+	this.displayTrace = true
 	
 };
 
@@ -109,6 +111,15 @@ f3.add(control, 'z').min(-30).max(5).listen()
 f3.add(control, 'azimuth_deg').listen()
 f3.add(control, 'elevation_deg').listen()
 f3.add(control, 'chaseTimeConstant').min(1).max(20)
+var traceController = f3.add(control, 'displayTrace')
+
+traceController.onChange(function(traceOrNot){
+	for (var i = 0; i < traceList.length; i ++ )
+	{
+		scene.remove(traceList[i])
+	}
+	
+});
 
 cameraController.onFinishChange(function(cam){
 	if (cam=='anchored')
@@ -449,6 +460,17 @@ function animate() {
 	cameraIni.position.x = control.x
 	cameraIni.position.y = control.y
 	cameraIni.position.z = control.z
+	
+	if ((Math.abs(t-lastTime)>1)&&(control.displayTrace))
+	{
+		lastTime = t
+		trace=triedreBody.clone()
+		trace.scale.x=0.1
+		trace.scale.y=0.1
+		trace.scale.z=0.1
+		scene.add(trace)
+		traceList.push(trace)
+	}
 
 	render();
 	update();
