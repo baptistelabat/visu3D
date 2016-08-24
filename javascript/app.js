@@ -1,6 +1,5 @@
 console.log("This is a 3D visualizator");
-
-
+var myOutput = document.getElementById("info");
 
 
 var traceList= new Array()
@@ -51,7 +50,7 @@ var MyControl = function(){
 	this.speed=1
 	this.time=0
 	this.inputType = 'Log file'
-	this.websocketAddress = 'ws://127.0.0.1/websocket'
+	this.websocketAddress = 'ws://localhost:8080/websocket'
 	this.selectLogFile = function(){
 		logFileElem = document.getElementById("csvFileInput");
 		logFileElem.click();
@@ -95,7 +94,7 @@ var f1 = gui.addFolder('Input');
 var f2 = gui.addFolder('Time control');
 var f3 = gui.addFolder('View');
 
-var timeController = f2.add(control, 'time').step(0.1).min(0).max(10).listen();
+var timeController = f2.add(control, 'time').step(0.1).min(0).max(1000).listen();
 f2.add(control, 'speed').min(-20).max(20).step(0.2);
 
 var typeController = f1.add(control, 'inputType',['Log file', 'Websocket']);
@@ -175,7 +174,8 @@ scaleController.onChange(function(scale){
 typeController.onChange(function(value){
 	if (value=='Websocket')
 	{
-		ws = new WebSocket(value);
+		ws = new WebSocket(control.websocketAddress);
+		//var ws = new WebSocket("ws://localhost:8080/websocket");
 		ws.onmessage = function(evt){
             var myOutput = document.getElementById("info");
                 myOutput.innerHTML = evt.data;
@@ -407,11 +407,18 @@ function animate() {
 	var delta = clock.getDelta();
 
 	requestAnimationFrame( animate );
-
-	t += delta*control.speed;
-	if (times.length>0)
+	
+	if (control.inputType=='Websocket')
 	{
-		t= Math.max(times[0], Math.min(t, times[times.length-1]))
+		t = state.t
+	}
+	else
+	{
+		t += delta*control.speed;
+		if (times.length>0)
+		{
+			t= Math.max(times[0], Math.min(t, times[times.length-1]))
+		}
 	}
 	control.time = t;
 
