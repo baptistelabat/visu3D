@@ -49,7 +49,7 @@ var gui = new dat.GUI({
 var MyControl = function(){
 	this.speed=1
 	this.time=0
-	this.inputType = 'Log file'
+	this.inputType = 'Cookie'
 	this.websocketAddress = 'ws://localhost:8080/websocket'
 	this.selectLogFile = function(){
 		logFileElem = document.getElementById("csvFileInput");
@@ -97,7 +97,7 @@ var f3 = gui.addFolder('View');
 var timeController = f2.add(control, 'time').step(0.1).min(0).max(1000).listen();
 f2.add(control, 'speed').min(-20).max(20).step(0.2);
 
-var typeController = f1.add(control, 'inputType',['Log file', 'Websocket']);
+var typeController = f1.add(control, 'inputType',['Cookie', 'Log file', 'Websocket']);
 f1.add(control, 'websocketAddress');
 f1.add(control, 'selectLogFile');
 f1.add(control, 'selectedLogFile').listen();
@@ -197,6 +197,12 @@ function interpState(t){
 		state.y = everpolate.linear(t, times, ys);
 		state.z = everpolate.linear(t, times, zs);
 	}
+}
+function secondsToHMS(t){
+	h = Math.floor(t/3600)
+	m = Math.floor((t-3600*h)/60)
+	s = t-3600*h-60*m
+	return h+':'+m+':'+Math.floor(s)
 }
 
 init();
@@ -400,8 +406,6 @@ function createDefaultBoat()
 	elem3D.add(boat)
 }
 
-
-
 function animate() {
 	
 	var delta = clock.getDelta();
@@ -410,6 +414,7 @@ function animate() {
 	
 	if (control.inputType=='Websocket')
 	{
+		state.t = localStorage.getItem("t");
 		t = state.t
 	}
 	else
@@ -419,6 +424,7 @@ function animate() {
 		{
 			t= Math.max(times[0], Math.min(t, times[times.length-1]))
 		}
+		myOutput.innerHTML = secondsToHMS(t)
 	}
 	control.time = t;
 
@@ -426,9 +432,17 @@ function animate() {
 	{
 		interpState(t)
 	}
-	else
+	if (control.inputType=='Websocket')
 	{
 		state = JSON.parse(myOutput.innerHTML);
+	}
+	if (control.inputType=='Cookie')
+	{
+		state.x = localStorage.getItem("x");
+		state.y = localStorage.getItem("y");
+		state.z = localStorage.getItem("z");
+		state.pitch_deg = localStorage.getItem("pitch")*180/Math.PI;
+		t = localStorage.getItem("t");
 	}
 	triedreBody.rotation.order = 'ZYX';
 	triedreBody.rotation.x = state.roll_deg*Math.PI/180;
@@ -452,7 +466,7 @@ function animate() {
 	}
 	cameraChase.position.x = stateFilter.x+control.x
 	cameraChase.position.y = stateFilter.y+control.y
-	cameraChase.position.z = stateFilter.z+control.z
+	cameraChase.position.z = 0*stateFilter.z+control.z
 	embeddedBearing = Math.atan2(state.y-cameraChase.position.y,state.x-cameraChase.position.x)
 	BearingDir = new THREE.Vector3( Math.cos(control.azimuth_deg*Math.PI/180+embeddedBearing)*Math.cos(control.elevation_deg*Math.PI/180), Math.sin(control.azimuth_deg*Math.PI/180+embeddedBearing)*Math.cos(control.elevation_deg*Math.PI/180), -Math.sin(control.elevation_deg*Math.PI/180)  );
 	BearingDir.add(cameraChase.position)
