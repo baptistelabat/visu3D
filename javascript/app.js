@@ -183,7 +183,9 @@ typeController.onChange(function(value){
 	}
 	else
 	{
-		ws.close();
+        if (typeof(ws) != "undefined") {
+            ws.close();
+        }
 	}
 })
 
