@@ -77,10 +77,10 @@ var MyControl = function(){
 		this.selected3DFileDAE = 'None'
 	}
 	this.view = 'embedded'
-	this.x = -25
-	this.y = 0
-	this.z = -5
-	this.azimuth_deg=0
+	this.x = -7.5
+	this.y = 3.8
+	this.z = -2
+	this.azimuth_deg=-18
 	this.elevation_deg=0
 	this.chaseTimeConstant = 2;
 	this.displayTrace = false;
@@ -105,9 +105,9 @@ f1.add(control, 'select3DFileDAE');
 f1.add(control, 'selected3DFileDAE').listen();
 scaleController = f1.add(control, 'scale')
 cameraController = f3.add(control, 'view',['anchored','embedded', 'chase']);
-f3.add(control, 'x').min(-100).max(100).listen()
-f3.add(control, 'y').min(-100).max(100).listen()
-f3.add(control, 'z').min(-30).max(5).listen()
+f3.add(control, 'x').min(-100).max(100).listen().step(0.1)
+f3.add(control, 'y').min(-100).max(100).listen().step(0.1)
+f3.add(control, 'z').min(-30).max(5).listen().step(0.1)
 f3.add(control, 'azimuth_deg').listen()
 f3.add(control, 'elevation_deg').listen()
 f3.add(control, 'chaseTimeConstant').min(1).max(20)
@@ -381,7 +381,7 @@ function createDefaultBoat()
 	foil.add(knee)
 	knee.position.z =1.5
 	knee.rotation.x=-14*Math.PI/180
-	foil.position.z=0.9
+	foil.position.z=1.3
 	foil.position.y=-3.75
 	foil.position.x=1
 	trampo = new THREE.Mesh( new THREE.CubeGeometry( 8,7.5,0.01), new THREE.MeshPhongMaterial({ color: 0x000000, transparent:true, opacity:0.5}) );
@@ -443,7 +443,9 @@ function animate() {
 		state.x = localStorage.getItem("x");
 		state.y = localStorage.getItem("y");
 		state.z = localStorage.getItem("z");
+        state.roll_deg = localStorage.getItem("roll")*180/Math.PI;
 		state.pitch_deg = localStorage.getItem("pitch")*180/Math.PI;
+        state.yaw_deg = localStorage.getItem("yaw")*180/Math.PI;
 		t = localStorage.getItem("t");
 	}
 	triedreBody.rotation.order = 'ZYX';
